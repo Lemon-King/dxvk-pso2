@@ -1431,8 +1431,10 @@ namespace dxvk {
   void DxvkContext::generateMipmaps(
     const Rc<DxvkImageView>&        imageView,
           VkFilter                  filter) {
-    if (imageView->info().numLevels <= 1)
-      return;
+
+    // PSO2: Skipping check as some textures misreport mips
+    //if (imageView->info().numLevels <= 1)
+    //    return;
     
     this->spillRenderPass();
 

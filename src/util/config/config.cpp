@@ -410,6 +410,20 @@ namespace dxvk {
     { R"(\\SpellForce2.*\.exe$)", {{
       { "d3d9.forceSamplerTypeSpecConstants", "True" },
     }} },
+
+    /**********************************************/
+    /* Phantasy Star Online 2                     */
+    /**********************************************/
+      { R"(\\pso2\.exe$)", { {
+        { "d3d9.samplerAnisotropy",           "16"   },
+        { "d3d9.invariantPosition",           "True" },
+        { "d3d9.evictManagedOnUnlock",        "True" },
+        { "d3d9.strictPow",                   "True" },
+        { "d3d9.lenientClear",                "True" }, 
+        { "d3d9.enableDialogMode",            "True" },
+        { "d3d9.longMad",                     "True" },
+        { "d3d9.pso2Tweaks",                  "True" },
+    }} },
   }};
 
 

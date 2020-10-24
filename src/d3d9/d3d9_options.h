@@ -147,6 +147,9 @@ namespace dxvk {
     /// Tear-free mode if vsync is disabled
     /// Tearing mode if vsync is enabled
     Tristate tearFree;
+
+    // PSO2 Only Changes
+    bool pso2Tweaks;
   };
 
 }

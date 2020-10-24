@@ -143,6 +143,8 @@ namespace dxvk {
 
     HRESULT STDMETHODCALLTYPE AddDirtyRect(CONST RECT* pDirtyRect);
 
+    HRESULT STDMETHODCALLTYPE RebuildMips();
+
   };
 
   using D3D9Texture3DBase = D3D9BaseTexture<D3D9Volume, IDirect3DVolumeTexture9>;
@@ -192,7 +194,6 @@ namespace dxvk {
     HRESULT STDMETHODCALLTYPE UnlockRect(D3DCUBEMAP_FACES Face, UINT Level);
 
     HRESULT STDMETHODCALLTYPE AddDirtyRect(D3DCUBEMAP_FACES Face, CONST RECT* pDirtyRect);
-
   };
 
   inline D3D9CommonTexture* GetCommonTexture(IDirect3DBaseTexture9* ptr) {

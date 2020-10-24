@@ -410,6 +410,14 @@ namespace dxvk {
       m_initializer->InitTexture(texture->GetCommonTexture(), initialData);
       *ppTexture = texture.ref();
 
+      if (m_d3d9Options.pso2Tweaks) {
+          texture->GetCommonTexture()->SetMipFilter(D3DTEXF_ANISOTROPIC);
+          texture->GetCommonTexture()->SetNeedsMipGen(true);
+          if (Pool == 0) {
+              texture->SetAutoGenFilterType(D3DTEXF_ANISOTROPIC);
+              texture->GenerateMipSubLevels();
+          }
+      }
       return D3D_OK;
     }
     catch (const DxvkError& e) {
@@ -753,9 +761,15 @@ namespace dxvk {
         dstTexInfo->SetDirty(dstTexInfo->CalcSubresource(i, 0), true);
 
       MarkTextureMipsDirty(dstTexInfo);
+
+      dstTexInfo->SetMipFilter(D3DTEXF_ANISOTROPIC);
+      dstTexInfo->SetNeedsMipGen(true);
     }
     else
       dstTexInfo->MarkAllDirty();
+
+    //dstTexInfo->SetMipFilter(D3DTEXF_ANISOTROPIC);
+    //dstTexInfo->SetNeedsMipGen(true);
 
     FlushImplicit(false);
 
@@ -1189,8 +1203,10 @@ namespace dxvk {
       if (texInfo->GetMapping().Swizzle.a == VK_COMPONENT_SWIZZLE_ONE)
         m_alphaSwizzleRTs |= 1 << RenderTargetIndex;
 
-      if (texInfo->IsAutomaticMip())
-        texInfo->SetNeedsMipGen(true);
+      if (m_d3d9Options.pso2Tweaks || texInfo->IsAutomaticMip()) {
+          texInfo->SetMipFilter(D3DTEXF_ANISOTROPIC);
+          texInfo->SetNeedsMipGen(true);
+      }
 
       texInfo->SetDirty(rt->GetSubresource(), true);
     }
@@ -3328,7 +3344,7 @@ namespace dxvk {
     desc.Depth              = 1;
     desc.ArraySize          = 1;
     desc.MipLevels          = 1;
-    desc.Usage              = Usage | D3DUSAGE_RENDERTARGET;
+    desc.Usage              = Usage | D3DUSAGE_RENDERTARGET | D3DUSAGE_AUTOGENMIPMAP;
     desc.Format             = EnumerateFormat(Format);
     desc.Pool               = D3DPOOL_DEFAULT;
     desc.Discard            = FALSE;
@@ -3340,8 +3356,16 @@ namespace dxvk {
 
     try {
       const Com<D3D9Surface> surface = new D3D9Surface(this, &desc, nullptr);
+
       m_initializer->InitTexture(surface->GetCommonTexture());
       *ppSurface = surface.ref();
+      if (m_d3d9Options.pso2Tweaks) {
+          surface->GetCommonTexture()->SetMipFilter(D3DTEXF_ANISOTROPIC);
+          surface->GetCommonTexture()->SetNeedsMipGen(true);
+          //surface->GetBaseTexture()->SetAutoGenFilterType(D3DTEXF_ANISOTROPIC);
+          //surface->GetBaseTexture()->GenerateMipSubLevels();
+      }
+
       return D3D_OK;
     }
     catch (const DxvkError& e) {
@@ -3385,6 +3409,12 @@ namespace dxvk {
       const Com<D3D9Surface> surface = new D3D9Surface(this, &desc, nullptr);
       m_initializer->InitTexture(surface->GetCommonTexture());
       *ppSurface = surface.ref();
+
+      if (m_d3d9Options.pso2Tweaks) {
+          surface->GetCommonTexture()->SetMipFilter(D3DTEXF_ANISOTROPIC);
+          surface->GetCommonTexture()->SetNeedsMipGen(true);
+      } 
+
       return D3D_OK;
     }
     catch (const DxvkError& e) {
@@ -3934,7 +3964,7 @@ namespace dxvk {
     VkExtent3D blockCount  = util::computeBlockCount(levelExtent, formatInfo->blockSize);
     
     const bool systemmem = desc.Pool == D3DPOOL_SYSTEMMEM;
-    const bool managed   = IsPoolManaged(desc.Pool);
+    const bool managed = IsPoolManaged(desc.Pool);
     const bool scratch   = desc.Pool == D3DPOOL_SCRATCH;
 
     bool fullResource = pBox == nullptr;
@@ -3957,7 +3987,6 @@ namespace dxvk {
 
     // DISCARD is also ignored for MANAGED and SYSTEMEM.
     // DISCARD is not ignored for non-DYNAMIC unlike what the docs say.
-
     if (!fullResource || desc.Pool != D3DPOOL_DEFAULT)
       Flags &= ~D3DLOCK_DISCARD;
 
@@ -4954,7 +4983,8 @@ namespace dxvk {
       // Guaranteed to not be nullptr...
       auto texInfo = GetCommonTexture(m_state.textures[bit::tzcnt(tex)]);
 
-      if (texInfo->NeedsMipGen()) {
+      if (m_d3d9Options.pso2Tweaks || texInfo->NeedsMipGen()) {
+        texInfo->SetNeedsMipGen(true);
         this->EmitGenerateMips(texInfo);
         texInfo->SetNeedsMipGen(false);
       }
@@ -5522,14 +5552,14 @@ namespace dxvk {
       colorInfo.addressModeW   = DecodeAddressMode(cKey.AddressW);
       colorInfo.compareToDepth = VK_FALSE;
       colorInfo.compareOp      = VK_COMPARE_OP_NEVER;
-      colorInfo.magFilter      = DecodeFilter(cKey.MagFilter);
-      colorInfo.minFilter      = DecodeFilter(cKey.MinFilter);
-      colorInfo.mipmapMode     = mipFilter.MipFilter;
+      colorInfo.magFilter      = m_d3d9Options.pso2Tweaks ? VK_FILTER_LINEAR : DecodeFilter(cKey.MagFilter);
+      colorInfo.minFilter      = m_d3d9Options.pso2Tweaks ? VK_FILTER_LINEAR : DecodeFilter(cKey.MinFilter);
+      colorInfo.mipmapMode     = m_d3d9Options.pso2Tweaks ? VK_SAMPLER_MIPMAP_MODE_LINEAR : mipFilter.MipFilter;
       colorInfo.maxAnisotropy  = float(cKey.MaxAnisotropy);
       colorInfo.useAnisotropy  = cKey.MaxAnisotropy > 1;
-      colorInfo.mipmapLodBias  = cKey.MipmapLodBias;
-      colorInfo.mipmapLodMin   = mipFilter.MipsEnabled ? float(cKey.MaxMipLevel) : 0;
-      colorInfo.mipmapLodMax   = mipFilter.MipsEnabled ? FLT_MAX                 : 0;
+      colorInfo.mipmapLodBias  = m_d3d9Options.pso2Tweaks ? 0.0f : cKey.MipmapLodBias;
+      colorInfo.mipmapLodMin   = float(cKey.MaxMipLevel);
+      colorInfo.mipmapLodMax   = m_d3d9Options.pso2Tweaks || mipFilter.MipsEnabled ? FLT_MAX : 0;
       colorInfo.usePixelCoord  = VK_FALSE;
 
       DecodeD3DCOLOR(cKey.BorderColor, colorInfo.borderColor.float32);

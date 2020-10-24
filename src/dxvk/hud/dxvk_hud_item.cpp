@@ -75,6 +75,12 @@ namespace dxvk::hud {
       { 1.0f, 1.0f, 1.0f, 1.0f },
       "DXVK " DXVK_VERSION);
 
+    position.y += 24.0f;
+    renderer.drawText(16.0f,
+        { position.x, position.y },
+        { 60.0f / 255.0f, 211.0f / 255.0f, 228.0f / 255.0f, 1.0f },
+        "PSO2 Enhanced");
+
     position.y += 8.0f;
     return position;
   }

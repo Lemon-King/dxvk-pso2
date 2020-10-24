@@ -79,6 +79,12 @@ namespace dxvk {
     return D3D_OK;
   }
 
+  HRESULT STDMETHODCALLTYPE D3D9Texture2D::RebuildMips() {
+      m_texture.SetNeedsMipGen(true);
+
+      return D3D_OK;
+  }
+
 
   // Direct3DVolumeTexture9
 
@@ -232,5 +238,4 @@ namespace dxvk {
   HRESULT STDMETHODCALLTYPE D3D9TextureCube::AddDirtyRect(D3DCUBEMAP_FACES Face, CONST RECT* pDirtyRect) {
     return D3D_OK;
   }
-
 }
