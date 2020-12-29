@@ -3726,6 +3726,9 @@ namespace dxvk {
     enabled.extVertexAttributeDivisor.vertexAttributeInstanceRateDivisor = supported.extVertexAttributeDivisor.vertexAttributeInstanceRateDivisor;
     enabled.extVertexAttributeDivisor.vertexAttributeInstanceRateZeroDivisor = supported.extVertexAttributeDivisor.vertexAttributeInstanceRateZeroDivisor;
 
+    // Null Descriptors
+    enabled.extRobustness2.nullDescriptor = supported.extRobustness2.nullDescriptor;
+
     // ProcessVertices
     enabled.core.features.vertexPipelineStoresAndAtomics = supported.core.features.vertexPipelineStoresAndAtomics;
 
@@ -5215,15 +5218,12 @@ namespace dxvk {
     const D3DVIEWPORT9& vp = m_state.viewport;
 
     // Correctness Factor for 1/2 texel offset
-    float cf = 0.5f;
-
-    // HACK: UE3 bug re. tonemapper + shadow sampling being red:-
-    // We need to bias this, except when it's
-    // NOT powers of two in order to make
-    // imprecision biased towards infinity.
-    if ((vp.Width  & (vp.Width  - 1)) == 0
-     && (vp.Height & (vp.Height - 1)) == 0)
-      cf -= 1.0f / 128.0f;
+    // We need to bias this slightly to make
+    // imprecision in games happy.
+    // Originally we did this only for powers of two
+    // resolutions but since NEAREST filtering fixed to
+    // truncate, we need to do this all the time now.
+    float cf = 0.5f - (1.0f / 128.0f);
 
     viewport = VkViewport{
       float(vp.X)     + cf,    float(vp.Height + vp.Y) + cf,

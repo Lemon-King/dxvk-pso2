@@ -150,6 +150,13 @@ namespace dxvk {
 
     // PSO2 Only Changes
     bool pso2Tweaks;
+    
+    /// Workaround for games using alpha test == 1.0, etc due to wonky interpolation or
+    /// misc. imprecision on some vendors
+    bool alphaTestWiggleRoom;
+
+    /// Apitrace mode: Maps all buffers in cached memory.
+    bool apitraceMode;
   };
 
 }

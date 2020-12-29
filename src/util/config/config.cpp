@@ -45,10 +45,6 @@ namespace dxvk {
     { R"(\\FarCry4\.exe$)", {{
       { "dxgi.nvapiHack",                   "False" },
     }} },
-    /* Far Cry Primal: Nvidia performance         */
-    { R"(\\FCPrimal\.exe$)", {{
-      { "dxgi.nvapiHack",                   "False" },
-    } }},
     /* Frostpunk: Renders one frame with D3D9     *
      * after creating the DXGI swap chain         */
     { R"(\\Frostpunk\.exe$)", {{
@@ -237,6 +233,7 @@ namespace dxvk {
     /* Monster Hunter World                       */
     { R"(\\MonsterHunterWorld\.exe$)", {{
       { "d3d11.apitraceMode",               "True" },
+      { "d3d11.invariantPosition",          "True" },
     }} },
     /* The Dungeon of Maheulbeuk                  */
     { R"(\\Naheulbeuk\.exe$)", {{
@@ -414,15 +411,27 @@ namespace dxvk {
     /**********************************************/
     /* Phantasy Star Online 2                     */
     /**********************************************/
-      { R"(\\pso2\.exe$)", { {
-        { "d3d9.samplerAnisotropy",           "16"   },
-        { "d3d9.invariantPosition",           "True" },
-        { "d3d9.evictManagedOnUnlock",        "True" },
-        { "d3d9.strictPow",                   "True" },
-        { "d3d9.lenientClear",                "True" }, 
-        { "d3d9.enableDialogMode",            "True" },
-        { "d3d9.longMad",                     "True" },
-        { "d3d9.pso2Tweaks",                  "True" },
+    { R"(\\pso2\.exe$)", { {
+      { "d3d9.samplerAnisotropy",           "16"   },
+      { "d3d9.invariantPosition",           "True" },
+      { "d3d9.evictManagedOnUnlock",        "True" },
+      { "d3d9.strictPow",                   "True" },
+      { "d3d9.lenientClear",                "True" }, 
+      { "d3d9.enableDialogMode",            "True" },
+      { "d3d9.longMad",                     "True" },
+      { "d3d9.pso2Tweaks",                  "True" },
+
+    /* Everquest 2                                */
+    { R"(\\EverQuest2.*\.exe$)", {{
+      { "d3d9.alphaTestWiggleRoom", "True" },
+    }} },
+    /* Tomb Raider: Legend                       */
+    { R"(\\trl\.exe$)", {{
+      { "d3d9.apitraceMode",                "True" },
+    }} },
+    /* Everquest                                 */
+    { R"(\\eqgame\.exe$)", {{
+      { "d3d9.apitraceMode",                "True" },
     }} },
   }};
 
